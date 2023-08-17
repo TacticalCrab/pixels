@@ -1,0 +1,12 @@
+version: '3.1'
+
+services:
+  pixels-db:
+    image: postgres:15.3
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: pixel
+      POSTGRES_PASSWORD: pixel
+      POSTGRES_DATABASE: pixel
+    ports:
+      - "5432:5432"

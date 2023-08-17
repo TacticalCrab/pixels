@@ -1,0 +1,1 @@
+export type SyncCanvasResponse = Uint32Array;
