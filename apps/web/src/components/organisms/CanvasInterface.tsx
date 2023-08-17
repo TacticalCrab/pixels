@@ -6,6 +6,7 @@ import Knot from '@/components/atoms/Knot';
 import Bar from '@/components/atoms/Bar';
 import {ColorPicker} from '@/components/atoms/ColorPicker';
 import {useCanvasContext} from '@/contexts/CanvasContext';
+import CanvasCursor from '@/components/atoms/CanvasCursor';
 
 function canvasRatio(clientOffset: number, offset: number, canvasSize: number) {
     return (clientOffset - offset) / canvasSize;
@@ -122,7 +123,7 @@ export default function CanvasInterface() {
             x: Math.round(window.innerWidth / 2 - canvasSize / 2),
             y: Math.round(window.innerHeight / 2 - canvasSize / 2)
         });
-    }, [canvasSize]);
+    }, []);
 
     useEffect(() => {
         let xPos = Math.floor((((window.innerWidth) / 2) - canvasOffset.x) / (canvasSize / initialCanvasSize));
@@ -152,6 +153,7 @@ export default function CanvasInterface() {
             onWheel={onWheelCallback}
             onMouseMove={onMouseMoveCallback}
             onMouseUp={onMouseUpCallback}
+            onMouseDown={onMouseDownCallback}
             // onMouseOut={onMouseUpCallback}
             className={`overflow-hidden w-full h-full ${cursorStyle} bg-zinc-700 relative`}>
             <div className={'absolute w-full h-full top-0 left-0 z-50 pointer-events-none select-none flex flex-col justify-between'}>
@@ -179,44 +181,27 @@ export default function CanvasInterface() {
                 </Bar>
             </div>
 
+            {/*<div*/}
+            {/*    style={{*/}
+            {/*        transformOrigin: 'top left',*/}
+            {/*        transform: `translate(${canvasOffset.x}px, ${canvasOffset.y}px) scale(${canvasSize / initialCanvasSize})`,*/}
+            {/*        width: `${initialCanvasSize}px`,*/}
+            {/*        height: `${initialCanvasSize}px`*/}
+            {/*    }}*/}
+            {/*    className={`w-full h-full absolute top-0 left-0 z-30`}*/}
+            {/*    >*/}
+            {/*</div>*/}
             <div
                 style={{
                     transformOrigin: 'top left',
                     transform: `translate(${canvasOffset.x}px, ${canvasOffset.y}px) scale(${canvasSize / initialCanvasSize})`,
                     width: `${initialCanvasSize}px`,
-                    height: `${initialCanvasSize}px`
-                }}
-                className={`w-full h-full absolute top-0 left-0 z-30`}
-                onMouseDown={onMouseDownCallback}>
-            </div>
-            <div
-                style={{
-                    transformOrigin: 'top left',
-                    transform: `translate(${canvasOffset.x}px, ${canvasOffset.y}px) scale(${canvasSize / initialCanvasSize})`,
-                    width: `${initialCanvasSize}px`,
-                    height: `${initialCanvasSize}px`
+                    height: `${initialCanvasSize}px`,
+                    paddingLeft: cursorPos.x,
+                    paddingTop: cursorPos.y
                 }}
                 className={`w-full h-full top-0 left-0 z-20 relative`}>
-                <div
-                    style={{
-                        marginLeft: cursorPos.x,
-                        marginTop: cursorPos.y,
-                        width: 1,
-                        height: 1,
-                        backgroundColor: selectedColor
-                    }}
-                    className={'h-1 w-1 absolute top-0 left-0'}>
-                </div>
-                <Image
-                    style={{
-                        marginLeft: cursorPos.x,
-                        marginTop: cursorPos.y,
-                    }}
-                    width={1}
-                    height={1}
-                    src={"https://rplace.live/svg/pixel-select-2022.svg"}
-                    alt={'cursor'}
-                    className={'h-1 w-1 absolute top-0 left-0'} />
+                <CanvasCursor color={selectedColor}/>
             </div>
             <div
                 style={{

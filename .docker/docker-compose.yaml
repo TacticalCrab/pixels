@@ -4,9 +4,37 @@ services:
   pixels-db:
     image: postgres:15.3
     restart: unless-stopped
+    container_name: pixels-db
     environment:
       POSTGRES_USER: pixel
       POSTGRES_PASSWORD: pixel
       POSTGRES_DATABASE: pixel
     ports:
       - "5432:5432"
+    networks:
+      - apps-network
+
+  pixels-api:
+    build:
+      context: ../apps/api
+      dockerfile: Dockerfile
+    container_name: pixels-api
+    environment:
+      - DATABASE_URL=postgresql://pixel:pixel@pixels-db:5432/pixel?schema=public
+    ports:
+      - "3001:3001"
+      - "3002:3002"
+    depends_on:
+      - pixels-db
+    networks:
+      - apps-network
+
+  pixels-web:
+    build:
+      context: ../apps/web
+      dockerfile: Dockerfile
+    container_name: pixels-web
+    ports:
+      - "3000:3000"
+networks:
+  apps-network:

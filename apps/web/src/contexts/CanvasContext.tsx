@@ -18,7 +18,7 @@ export function CanvasProvider({children}: {children: React.ReactNode}) {
     const socket = useRef<Socket | null>(null)
 
     useEffect(() => {
-        const createdSocket = io(`http://localhost:3002/canvas`);
+        const createdSocket = io(`${process.env['NEXT_PUBLIC_API_WS_URL']}/canvas`);
         socket.current = createdSocket;
 
         createdSocket.on("error", (e) => {
