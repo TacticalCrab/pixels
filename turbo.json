@@ -9,6 +9,7 @@
       "outputs": [".next/**", "!.next/cache/**"]
     },
     "dev": {
+      "cache": false,
       "dependsOn": ["^dev"],
       "outputs": [".next/**", "!.next/cache/**"]
     },

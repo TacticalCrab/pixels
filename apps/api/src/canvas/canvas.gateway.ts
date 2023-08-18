@@ -7,7 +7,7 @@ import {
 } from '@nestjs/websockets';
 import {CanvasService} from './canvas.service';
 import {UpdatePixelRequest, UpdatePixelResponse,} from 'shared/lib/model/sockets/updatePixel.dto';
-import {SyncCanvasResponse} from 'shared/lib/model/sockets/model/syncCanvas.dto';
+import {SyncCanvasResponse} from 'shared/lib/model/sockets/syncCanvas.dto';
 import {CanvasSocket} from './types/canvasSocket';
 import {ErrorResponse, ErrorTypes} from 'shared/lib/model/sockets/error.dto';
 import UpdateTimeoutResponse from 'shared/lib/model/sockets/updateTimeout.dto';
