@@ -1,12 +1,12 @@
 'use client';
 import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
-import Image from 'next/image';
 import Canvas from '@/components/atoms/Canvas/Canvas';
 import Knot from '@/components/atoms/Knot';
 import Bar from '@/components/atoms/Bar';
 import {ColorPicker} from '@/components/atoms/ColorPicker';
 import {useCanvasContext} from '@/contexts/CanvasContext';
 import CanvasCursor from '@/components/atoms/CanvasCursor';
+import useTextTimer from '@/hooks/useTextTimer';
 
 function canvasRatio(clientOffset: number, offset: number, canvasSize: number) {
     return (clientOffset - offset) / canvasSize;
@@ -16,6 +16,22 @@ function getCanvasPositionByRatio(canvasSize: number, ratio: number) {
     return canvasSize * ratio;
 }
 
+function calculateCursorPos(canvasOffset: {x: number, y: number}, canvasSize: number, initialCanvasSize: number) {
+    let xPos = Math.floor((((window.innerWidth) / 2) - canvasOffset.x) / (canvasSize / initialCanvasSize));
+    let yPos = Math.floor((((window.innerHeight) / 2) - canvasOffset.y) / (canvasSize / initialCanvasSize));
+
+    if (xPos < 0) xPos = 0;
+    if (yPos < 0) yPos = 0;
+
+    if (xPos > initialCanvasSize - 1) xPos = initialCanvasSize - 1;
+    if (yPos > initialCanvasSize - 1) yPos = initialCanvasSize - 1;
+
+    return {
+        x: xPos,
+        y: yPos
+    }
+}
+
 interface CanvasInterface {}
 
 const maxZoom = 50000;
@@ -23,7 +39,8 @@ const minZoom = 800;
 const initialCanvasSize = 1000;
 
 export default function CanvasInterface() {
-    const {canvasRef, updatePixel} = useCanvasContext();
+    const {canvasRef, updatePixel, currentTimeoutTime} = useCanvasContext();
+    const {TextTimer, setTimerDeadline, timerRunning} = useTextTimer();
 
     const [canvasOffset, setCanvasOffset] = useState({x: 0, y: 0});
     const [canvasSize, setCanvasSize] = useState<number>(minZoom);
@@ -33,8 +50,14 @@ export default function CanvasInterface() {
 
     const previousCords = useRef<{x: number, y: number} | null>(null);
     const isMoving = useRef(false);
+    const initialOffset = useRef<{x: number, y: number}>({x: 0, y: 0});
 
     const onePixelSize = canvasSize / initialCanvasSize;
+
+    const updatePixelTimeout = useCallback((x: number, y: number, color?: string) => {
+        updatePixel(x, y, color);
+        setTimerDeadline(currentTimeoutTime);
+    }, [updatePixel, setTimerDeadline])
 
     const onWheelCallback = (e: React.WheelEvent) => {
         let sign = 1;
@@ -61,34 +84,35 @@ export default function CanvasInterface() {
     };
     const onMouseMoveCallback = (e: React.MouseEvent) => {
         if (isMoving.current) {
-            if (previousCords.current) {
-                const x = e.clientX - previousCords.current.x;
-                const y = e.clientY - previousCords.current.y;
-                setCanvasOffset({
-                    x: canvasOffset.x + x,
-                    y: canvasOffset.y + y
-                });
-            }
-
-            previousCords.current = {
-                x: e.clientX,
-                y: e.clientY
-            }
+            setCanvasOffset({
+                x: e.clientX - initialOffset.current.x,
+                y: e.clientY - initialOffset.current.y
+            });
         }
     };
     const onMouseUpCallback = (e: React.MouseEvent) => {
         isMoving.current = false;
         previousCords.current = null;
         setCursorStyle('cursor-auto');
+
     };
     const onMouseDownCallback = (e: React.MouseEvent) => {
+        initialOffset.current = {
+            x:  e.clientX - canvasOffset.x,
+            y:  e.clientY - canvasOffset.y
+        }
+        console.log(initialOffset.current);
+
         isMoving.current = true;
         setCursorStyle('cursor-grabbing');
+
     };
     const onKeyDownCallback = useCallback((e: KeyboardEvent) => {
         switch (e.key) {
             case 'Enter':
-                updatePixel(cursorPos.x, cursorPos.y, selectedColor);
+                if (!timerRunning) {
+                    updatePixelTimeout(cursorPos.x, cursorPos.y, selectedColor);
+                }
                 break;
             case 'ArrowRight':
                 setCanvasOffset({
@@ -116,7 +140,7 @@ export default function CanvasInterface() {
                 break;
         }
 
-    }, [cursorPos, selectedColor, canvasOffset, updatePixel, setCanvasOffset, onePixelSize]);
+    }, [cursorPos, selectedColor, canvasOffset, updatePixel, setCanvasOffset, onePixelSize, timerRunning]);
 
     useLayoutEffect(() => {
         setCanvasOffset({
@@ -126,27 +150,15 @@ export default function CanvasInterface() {
     }, []);
 
     useEffect(() => {
-        let xPos = Math.floor((((window.innerWidth) / 2) - canvasOffset.x) / (canvasSize / initialCanvasSize));
-        let yPos = Math.floor((((window.innerHeight) / 2) - canvasOffset.y) / (canvasSize / initialCanvasSize));
-
-        if (xPos < 0) xPos = 0;
-        if (yPos < 0) yPos = 0;
-
-        if (xPos > initialCanvasSize - 1) xPos = initialCanvasSize - 1;
-        if (yPos > initialCanvasSize - 1) yPos = initialCanvasSize - 1;
-
-        setCursorPos({
-            x: xPos,
-            y: yPos
-        });
-    }, [canvasOffset, canvasSize]);
-
-    useEffect(() => {
         window.addEventListener('keydown', onKeyDownCallback);
         return () => {
             window.removeEventListener('keydown', onKeyDownCallback);
         }
     }, [onKeyDownCallback]);
+
+    useEffect(() => {
+        setCursorPos(calculateCursorPos(canvasOffset, canvasSize, initialCanvasSize));
+    }, [canvasOffset, canvasSize]);
 
     return (
         <div
@@ -170,27 +182,21 @@ export default function CanvasInterface() {
                             value={selectedColor}
                             onChange={(color) => setSelectedColor(color)}/>
                         <div className={'flex justify-center pb-1'}>
-                            <button
-                                type={'button'}
-                                className={'shadow text-black border-2 border-black px-4 py-0.5 rounded'}
-                                onClick={() => updatePixel(cursorPos.x, cursorPos.y, selectedColor)}>
-                                Place Tile
-                            </button>
+                            {timerRunning
+                                ? <Knot>
+                                        <TextTimer/>
+                                </Knot>
+                                : <button
+                                    type={'button'}
+                                    className={'shadow text-black border-2 border-black px-4 py-0.5 rounded'}
+                                    onClick={() => updatePixelTimeout(cursorPos.x, cursorPos.y, selectedColor)}>
+                                    Place Tile
+                                </button>
+                            }
                         </div>
                     </Knot>
                 </Bar>
             </div>
-
-            {/*<div*/}
-            {/*    style={{*/}
-            {/*        transformOrigin: 'top left',*/}
-            {/*        transform: `translate(${canvasOffset.x}px, ${canvasOffset.y}px) scale(${canvasSize / initialCanvasSize})`,*/}
-            {/*        width: `${initialCanvasSize}px`,*/}
-            {/*        height: `${initialCanvasSize}px`*/}
-            {/*    }}*/}
-            {/*    className={`w-full h-full absolute top-0 left-0 z-30`}*/}
-            {/*    >*/}
-            {/*</div>*/}
             <div
                 style={{
                     transformOrigin: 'top left',

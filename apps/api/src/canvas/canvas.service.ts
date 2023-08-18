@@ -1,11 +1,24 @@
-import { Injectable } from '@nestjs/common';
+import {Injectable, OnModuleInit} from '@nestjs/common';
 import {PrismaService} from '../prisma/prisma.service';
+import {Cron, CronExpression} from '@nestjs/schedule';
+import * as path from 'path';
+import * as fs from 'fs';
 
 @Injectable()
-export class CanvasService {
-    private _canvasData = new Uint32Array(1000000).fill(0xffffffff);
+export class CanvasService implements OnModuleInit{
+    private canvasDataPath = path.join(__dirname, '../../data/canvasData');
+    private _canvasData = new Uint32Array();
 
     constructor(private prismaService: PrismaService) {}
+
+    onModuleInit(): void {
+        if (fs.existsSync(this.canvasDataPath)) {
+            const fileData = fs.readFileSync(this.canvasDataPath);
+            this._canvasData =  new Uint32Array(fileData.buffer, fileData.byteOffset, 1000000);
+        } else {
+            this._canvasData = new Uint32Array(1000000).fill(0xffffffff)
+        }
+    }
 
     get canvasData(): Uint32Array {
         return this._canvasData;
@@ -21,13 +34,9 @@ export class CanvasService {
         return parseInt('0xff' + formattedColor);
     }
 
-    // @Cron(CronExpression.EVERY_10_MINUTES)
-    // async makeCanvasSnapshot() {
-    //     await this.prismaService.canvasSnapshots.create({
-    //         data: {
-    //             canvasData: Buffer.from(this.canvasData.buffer)
-    //         }
-    //     });
-    //     console.log('[!] CANVAS SNAPSHOT SAVED')
-    // }
+    @Cron(CronExpression.EVERY_5_MINUTES)
+    async makeCanvasSnapshot() {
+        fs.writeFileSync(this.canvasDataPath, Buffer.from(this._canvasData.buffer));
+        console.log('[!] CANVAS SNAPSHOT SAVED')
+    }
 }

@@ -58,7 +58,8 @@
     "ts-loader": "^9.4.4",
     "ts-node": "^10.9.1",
     "tsconfig-paths": "4.2.0",
-    "typescript": "^5.1.6"
+    "typescript": "^5.1.6",
+    "shared": "*"
   },
   "jest": {
     "moduleFileExtensions": [
@@ -76,8 +77,5 @@
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"
-  },
-  "_moduleAliases": {
-    "@shared": "shared/dist"
   }
 }
