@@ -5,7 +5,7 @@
   "main": "index.js",
   "packageManager": "npm@9.1.2",
   "workspaces": [
-    "packages/*",
+    "packages/**/*",
     "apps/*"
   ],
   "keywords": [],

@@ -11,7 +11,7 @@ export default function Bar({children, className}: ChingchangProps) {
 
     if (childrenCount === 1) {
         conditionStyle = 'flex justify-center items-center';
-    } else if (childrenCount > 2) {
+    } else if (childrenCount >= 2) {
         conditionStyle = 'flex justify-between items-center';
     }
 
