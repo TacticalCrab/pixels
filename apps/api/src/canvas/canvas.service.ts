@@ -6,12 +6,17 @@ import * as fs from 'fs';
 
 @Injectable()
 export class CanvasService implements OnModuleInit{
+    private canvasDataFolderPath = path.join(__dirname, '../../data');
     private canvasDataPath = path.join(__dirname, '../../data/canvasData');
     private _canvasData = new Uint32Array();
 
     constructor(private prismaService: PrismaService) {}
 
     onModuleInit(): void {
+        if (!fs.existsSync(this.canvasDataFolderPath)) {
+            fs.mkdirSync(this.canvasDataFolderPath);
+        }
+
         if (fs.existsSync(this.canvasDataPath)) {
             const fileData = fs.readFileSync(this.canvasDataPath);
             this._canvasData =  new Uint32Array(fileData.buffer, fileData.byteOffset, 1000000);
