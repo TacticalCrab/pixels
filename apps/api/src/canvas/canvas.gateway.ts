@@ -37,9 +37,7 @@ export class CanvasGateway implements OnGatewayConnection {
         const currentTime = Date.now();
 
         // TODO: remove this
-
-        console.log(currentTime, socket.timestamp, currentTime > socket.timestamp);
-        if (currentTime > socket.timestamp) {
+        if (currentTime < socket.timestamp) {
             const error: ErrorResponse = {
                 error: ErrorTypes.UPDATE_PIXEL_NOT_ALLOWED,
                 message: 'Not allowed to update pixel at this time.'
