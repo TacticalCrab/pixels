@@ -18,8 +18,6 @@ export class CanvasGateway implements OnGatewayConnection {
 
     constructor(private canvasService: CanvasService) {}
     handleConnection(@ConnectedSocket() socket: CanvasSocket): void {
-        socket.timestamp = Date.now() + this.currentTimeout * 60 * 100;
-
         const canvasSyncResponse: SyncCanvasResponse = this.canvasService.canvasData;
 
         socket.emit('syncCanvas',
@@ -34,22 +32,6 @@ export class CanvasGateway implements OnGatewayConnection {
     
     @SubscribeMessage('updatePixel')
     handlePlacePixel(@ConnectedSocket() socket: CanvasSocket, @MessageBody() requestBody: UpdatePixelRequest): void {
-        const currentTime = Date.now();
-
-        // TODO: remove this
-        if (currentTime < socket.timestamp) {
-            const error: ErrorResponse = {
-                error: ErrorTypes.UPDATE_PIXEL_NOT_ALLOWED,
-                message: 'Not allowed to update pixel at this time.'
-            }
-
-
-            socket.emit('error', error);
-            return;
-        }
-
-        socket.timestamp = Date.now() + this.currentTimeout * 60 * 100;
-
         this.canvasService.updatePixel(requestBody.x, requestBody.y, requestBody.color);
 
         const responseBody: UpdatePixelResponse = {
