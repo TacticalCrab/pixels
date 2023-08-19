@@ -12,7 +12,7 @@ import {CanvasSocket} from './types/canvasSocket';
 import {ErrorResponse, ErrorTypes} from 'shared/lib/model/sockets/error.dto';
 import UpdateTimeoutResponse from 'shared/lib/model/sockets/updateTimeout.dto';
 
-@WebSocketGateway({ cors: true })
+@WebSocketGateway({ namespace: 'canvas', cors: true })
 export class CanvasGateway implements OnGatewayConnection {
     currentTimeout = 1;
 
