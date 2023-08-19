@@ -22,7 +22,7 @@ export function CanvasProvider({children}: {children: React.ReactNode}) {
 
 
     useEffect(() => {
-        const createdSocket = io(`${process.env['NEXT_PUBLIC_API_WS_URL']}/canvas`);
+        const createdSocket = io(`${process.env['NEXT_PUBLIC_API_WS_URL']}`);
         socket.current = createdSocket;
 
         createdSocket.on("error", (e) => {
